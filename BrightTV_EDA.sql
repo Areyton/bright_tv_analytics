@@ -226,12 +226,41 @@ SELECT
 
 WITH viewership AS (
 SELECT
-    COALESCE (UserID0, userid4) AS userid,
+    COALESCE (UserID0, userid4,0) AS userid,
+
+    --Dates
+    TO_CHAR(TO_DATE(RecordDate2), 'yyyymm') AS Month_id, -- TO_CHAR: convert a date into a string & TO_DATE(): Convert a string into a date
+    To_DATE(RecordDate2) AS watch_date, -- is to extract the date from the timestamp in the table
+    DAYNAME(RecordDate2) AS day_name,
 
     CASE
-        WHEN COALESCE(UserID0, userid4) IS NOT NULL THEN 1
-        ELSE 0
-    END AS active_subscriber_flag,
+        WHEN day_name IN ('Sat', 'Sun') THEN 'Weekend'
+        ELSE 'Weekday'
+    END AS day_class,
+
+    MONTHNAME(RecordDate2) AS month_name,
+
+    TO_CHAR(RecordDate2, 'dd') AS day_of_week,
+
+    -- Time
+    DATE_FORMAT(RecordDate2, 'HH:mm:ss') AS watch_time,
+    
+    HOUR(RecordDate2) AS hour_of_day,
+
+    CASE
+        WHEN watch_time BETWEEN '00:00:00' AND '05:59:59' THEN 'Midnight'
+        WHEN watch_time BETWEEN '06:00:00' AND '11:59:59' THEN 'Morning'
+        WHEN watch_time BETWEEN '12:00:00' AND '16:59:59' THEN 'Afternoon'
+        WHEN watch_time BETWEEN '17:00:00' AND '23:59:59' THEN 'Evening'
+    END AS time_of_day,
+
+    DATE_FORMAT(`Duration 2`, 'HH:mm:ss') AS Duration,
+
+    CASE
+        WHEN Duration BETWEEN '00:00:00' AND '00:30:00' THEN 'Low Usage'
+        WHEN Duration BETWEEN '00:30:01' AND '00:59:59' THEN 'Medium Usage'
+        WHEN Duration > '00:59:59' THEN 'Hihg Usage'
+    END AS Screen_time,
 
     CASE 
         WHEN Channel2 IN ('SawSee', 'Sawsee') THEN 'SawSee'
@@ -240,20 +269,10 @@ SELECT
         ELSE Channel2
     END AS TV_Channel,
 
-    TO_CHAR(RecordDate2, 'yyyymm') AS Month_id,
-     MONTHNAME(RecordDate2) AS month_name,
-
-    To_DATE(RecordDate2) AS watch_date,
-    TO_CHAR(RecordDate2, 'dd') AS day_of_week,
-    DAYNAME(RecordDate2) AS day_name,
     CASE
-        WHEN day_name IN ('Sat', 'Sun') THEN 'Weekend'
-        ELSE 'Weekday'
-    END AS day_class,
-
-    HOUR(RecordDate2) AS hour_of_day,
-    date_format(RecordDate2, 'hh:mm:ss') AS watch_time,
-    date_format(`Duration 2`, 'hh:mm:ss') AS duration
+        WHEN COALESCE(UserID0, userid4) IS NOT NULL THEN 1
+        ELSE 0
+    END AS active_subscriber_flag
 
  FROM brightlearn.bright_tv.viewership
 ),
