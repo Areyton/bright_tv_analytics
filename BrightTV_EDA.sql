@@ -228,6 +228,11 @@ WITH viewership AS (
 SELECT
     COALESCE (UserID0, userid4) AS userid,
 
+    CASE
+        WHEN COALESCE(UserID0, userid4) IS NOT NULL THEN 1
+        ELSE 0
+    END AS active_subscriber_flag,
+
     CASE 
         WHEN Channel2 IN ('SawSee', 'Sawsee') THEN 'SawSee'
         WHEN Channel2 IN ('Supersport Live Events', 'Live on SuperSport', 'SuperSport Live Events', 'DStv Events 1') THEN 'Live Events'
